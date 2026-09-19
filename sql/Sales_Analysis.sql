@@ -35,5 +35,24 @@ order by customer_spend DESC
 select * from cust_demo
 
 
+--Top 10 Customers
 SET search_path TO ecom;
-select * from categories
+with cust_spend as (
+select 
+c.customer_id,c.first_name||' '||c.last_name as CustomerName,
+c.country as country,
+sum(o.Total) as customer_spend 
+FROM customers c join orders o 
+ON o.customer_id=c.customer_id
+--where c.country is not null
+where o.status not like 'cancelled'
+group by c.customer_id
+order by customer_spend DESC
+),cust_ranking as (
+select *,
+dense_rank() over (ORDER BY customer_spend desc) as cust_rank
+from cust_spend
+)
+select cust_rank,CustomerName,country,customer_spend,
+customer_id from cust_ranking
+WHERE cust_rank<=10
