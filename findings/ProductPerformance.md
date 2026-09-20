@@ -1,5 +1,7 @@
 # Product Performance Analysis
 
+![ER Diagram reference](mermaid-diagram.png)
+
 ## Business Question
 
 Which products generate the highest revenue from delivered orders, and how does revenue compare with units sold?
