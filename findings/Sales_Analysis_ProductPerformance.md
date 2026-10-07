@@ -2,68 +2,98 @@
 
 ![ER Diagram reference](mermaid-diagram.png)
 
-## Business Question
+##Business Question
 
-Which products generate the highest revenue from delivered orders, and how does revenue compare with units sold?
+Which products generate the highest gross realized revenue from delivered orders, and how does revenue compare with units sold and order reach?
 
-## SQL Approach
+##SQL Approach
+Joined orders, order_items, product_variants, and products.
+Used order_items.line_total to calculate product-level sales value instead of orders.total, which could duplicate order-level revenue across multiple items.
+Standardized order status using LOWER(TRIM(status)).
+Restricted the analysis to delivered orders so that revenue represents completed sales.
+Calculated:
+Gross realized revenue
+Units sold
+Number of distinct orders
+Average revenue per unit
 
-* Joined `orders`, `order_items`, `product_variants`, and `products`.
-* Used `order_items.line_total` to calculate product-level revenue instead of `orders.total`, which could duplicate order revenue across multiple items.
-* Standardized order status using `LOWER(TRIM(status))`.
-* Filtered the analysis to orders with the status `delivered`.
-* Calculated:
+Gross realized revenue represents sales from delivered orders before refunds. It is not equivalent to net revenue or profit.
 
-  * Total revenue
-  * Total quantity sold
-  * Average revenue per unit
+##Key Findings
+1. Marigold Home Craft Lite Wireless Earbuds generated the highest realized revenue
 
-## Key Findings
+Marigold Home Craft Lite Wireless Earbuds ranked #1 with:
 
-### 1. Highest-Revenue Products
+566,678 gross realized revenue
+22 units sold
+18 orders
+25,758.09 average revenue per unit
 
-The highest-revenue delivered products included wireless earbuds, headphones, and smartwatches.
+It generated the highest revenue despite relatively low unit volume, indicating that its revenue contribution is driven more by higher value per unit than by high sales volume.
 
-The top product was **Marigold Home Craft Lite Wireless Earbuds**, with:
+2. Zyra Bass+ Over-Ear Headphones is the strongest volume-driven product
 
-* Delivered revenue: 566,678
-* Units sold: 22
-* Average revenue per unit: 25,758.09
+Zyra Bass+ Over-Ear Headphones sold the most units among the top 10:
 
-Other high-revenue products included Everbloom Collective Air Over-Ear Headphones, Kosha Co. Active Kids Smartwatch, and Vastra Craft Pulse Kids Smartwatch.
+45 units
+33 orders
+446,955 gross realized revenue
+9,932.33 average revenue per unit
 
-### 2. Revenue and Quantity Show Different Patterns
+This contrasts with Marigold: Zyra achieves substantial revenue through higher unit and order volume, rather than a high revenue per unit.
 
-Products with high revenue do not necessarily have the highest unit sales.
+This is an important distinction:
+
+Revenue leadership and volume leadership are not the same thing.
+
+3. Mirae Essentials Luxe Smartwatch has the highest revenue per unit
+
+Mirae Essentials Luxe Smartwatch generated:
+
+423,489 revenue
+from only 11 units
+across 8 orders
+at 38,499 revenue per unit
+
+It has the highest average revenue per unit among the top 10 products, yet ranks only #9 by total revenue.
+
+This suggests a high-value, low-volume product profile.
+
+##Business Interpretation
+
+The top products show that product performance is driven by different combinations of price/value, unit volume, and order reach.
+
+High-value products can generate substantial revenue without selling large quantities.
+High-volume products can generate strong revenue through greater unit and order volume.
+Therefore, ranking products by revenue alone does not fully explain their commercial performance.
+
+This distinction can support different business decisions around pricing, promotions, merchandising, and inventory planning.
+
+However, this analysis does not establish profitability, because product costs, discounts, and refunds have not been incorporated.
+
+4. Product reach also differs substantially
+
+The number of distinct orders provides another perspective.
 
 For example:
 
-* Mirae Essentials Luxe Smartwatch generated 423,489 from 11 units.
-* Zyra Bass+ Over-Ear Headphones generated 446,955 from 45 units.
+Product	Revenue	Units	Orders	Revenue / Unit
+Marigold Earbuds	566,678	22	18	25,758
+Zyra Headphones	  446,955	45	33	9,932
+Mirae Smartwatch	423,489	11	8	38,499
 
-This shows that both product revenue and quantity sold should be analyzed together to understand product performance.
+So these products represent three different performance models:
 
-### 3. Average Revenue per Unit
+Marigold: high revenue + high value per unit
+Zyra: high volume + broad order reach
+Mirae: very high value per unit + low volume
 
-Average revenue per unit varies considerably across products.
-
-Mirae Essentials Luxe Smartwatch had an average revenue per unit of 38,499, while several other products generated lower revenue per unit but sold more units.
-
-This metric can help identify products with relatively high or low realized revenue per unit. It should not automatically be interpreted as profit or margin because product costs, discounts, and refunds have not yet been analyzed.
-
-## Business Interpretation
-
-The results suggest that audio products and smartwatches are represented among the higher-revenue delivered products in this dataset.
-
-Products with higher average revenue per unit may contribute substantial revenue even with lower unit volumes. Products with higher unit sales may be important for volume-driven sales strategies.
-
-These are descriptive findings. Additional analysis is required to determine profitability, customer demand drivers, and inventory priorities.
-
-## Limitations and Next Steps
-
-* Check whether delivered orders have refunds.
-* Calculate net revenue after refunds, if the required data is available.
-* Analyze product-level refund rates.
-* Compare product revenue with inventory levels.
-* Analyze product performance by category and brand.
-* Confirm whether `line_total` includes discounts and other adjustments.
+##Limitations and Next Steps
+Assess refunds on delivered orders and determine the extent to which refunds reduce realized revenue.
+Calculate net realized revenue after refunds at the order/customer/country level where the refund data can be reliably linked.
+Avoid assigning order-level refunds directly to individual products unless a reliable product-level refund relationship is available.
+Analyze the open-order pipeline separately, including non-cancelled, non-delivered orders, to identify products with strong current demand that have not yet contributed to realized revenue.
+Compare product performance with inventory levels to identify potential stock-out or overstock risks.
+Analyze product performance by category and brand to identify broader product-market patterns.
+Verify whether line_total incorporates discounts, promotions, taxes, or other adjustments before interpreting it as revenue.
+Assess profitability separately using product cost data, since revenue does not indicate margin or profit.

@@ -1,20 +1,29 @@
-
+SET search_path TO ecom;
+select * from order_items
+limit 10
 
 --Product Performance
 
 
---Top 10 Products by Revenue
+--Top 10 Products by Gross Realized Revenue
 SET search_path TO ecom;
 with search_product as (
 select p.product_id,p.product_name, 
-sum(oi.line_total) as revenue
+sum(oi.line_total) as gross_realized_revenue,
+SUM(oi.qty) AS units_sold,
+COUNT(DISTINCT o.order_id) AS orders,
+ROUND(
+    SUM(oi.line_total) / NULLIF(SUM(oi.qty), 0),
+    2
+) AS avg_revenue_per_unit
 from orders o join order_items oi on oi.order_id=o.order_id
 join product_variants pv on pv.variant_id=oi.variant_id
 join Products p on p.product_id=pv.product_id
+WHERE LOWER(TRIM(o.status)) = 'delivered'
 GROUP BY p.product_name,p.product_id
 )
 select * from search_product
-order by revenue DESC
+order by gross_realized_revenue DESC
 limit 10
 
 
@@ -89,7 +98,8 @@ ORDER BY total_revenue DESC;
 
 --Find cancelled orders revenue
 SET search_path TO ecom;
-
+select count(*) as refund_rows,
+sum(amount) as total from refunds;
 SELECT
     COUNT(*) AS refund_count,
     SUM(refund_amount) AS total_refund_amount
@@ -170,3 +180,24 @@ from cust_spend
 select cust_rank,CustomerName,country,customer_spend,
 customer_id from cust_ranking
 WHERE cust_rank<=10
+
+
+
+
+SET search_path TO ecom;
+
+SELECT
+    payment_status,
+    LOWER(TRIM(status)) AS status1,
+    COUNT(*) AS order_count,
+    ROUND(
+        COUNT(*)::numeric
+        / SUM(COUNT(*)) OVER () * 100,
+        2
+    ) AS pct_of_orders
+FROM orders
+GROUP BY
+    payment_status,
+    LOWER(TRIM(status))
+ORDER BY
+    order_count DESC;
