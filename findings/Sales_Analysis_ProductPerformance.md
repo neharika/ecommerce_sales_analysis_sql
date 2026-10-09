@@ -89,19 +89,19 @@ Zyra: high volume + broad order reach
 Mirae: very high value per unit + low volume
 
 ##Limitations and Next Steps
-Assess refunds on delivered orders and determine the extent to which refunds reduce realized revenue.
-Calculate net realized revenue after refunds at the order/customer/country level where the refund data can be reliably linked.
-Avoid assigning order-level refunds directly to individual products unless a reliable product-level refund relationship is available.
-Analyze the open-order pipeline separately, including non-cancelled, non-delivered orders, to identify products with strong current demand that have not yet contributed to realized revenue.
-Compare product performance with inventory levels to identify potential stock-out or overstock risks.
-Analyze product performance by category and brand to identify broader product-market patterns.
-Verify whether line_total incorporates discounts, promotions, taxes, or other adjustments before interpreting it as revenue.
-Assess profitability separately using product cost data, since revenue does not indicate margin or profit.
+-Assess refunds on delivered orders and determine the extent to which refunds reduce realized revenue.
+-Calculate net realized revenue after refunds at the order/customer/country level where the refund data can be reliably linked.
+-Avoid assigning order-level refunds directly to individual products unless a reliable product-level refund relationship is available.
+-Analyze the open-order pipeline separately, including non-cancelled, non-delivered orders, to identify products with strong current demand that have not yet contributed to realized revenue.
+-Compare product performance with inventory levels to identify potential stock-out or overstock risks.
+-Analyze product performance by category and brand to identify broader product-market patterns.
+-Verify whether line_total incorporates discounts, promotions, taxes, or other adjustments before interpreting it as revenue.
+-Assess profitability separately using product cost data, since revenue does not indicate margin or profit.
 
 
 Top 10 Customers by Net Realized Revenue
 Business question:  
-Which customers generate the highest net realized revenue after accounting for refunds?
+Q:Which customers generate the highest net realized revenue after accounting for refunds?
 
 Key finding:  
 Shreya Menon is the highest-value customer, generating $665,147.72 in net realized revenue from $673,757.00 gross realized revenue, with $8,609.28 in refunds. The remaining top customers generated between approximately $506K and $590K in net realized revenue.
