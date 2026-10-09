@@ -77,7 +77,7 @@ The number of distinct orders provides another perspective.
 
 For example:
 
-Product	Revenue	Units	Orders	Revenue / Unit
+Product	          Revenue	Units	Orders	Revenue / Unit
 Marigold Earbuds	566,678	22	18	25,758
 Zyra Headphones	  446,955	45	33	9,932
 Mirae Smartwatch	423,489	11	8	38,499
