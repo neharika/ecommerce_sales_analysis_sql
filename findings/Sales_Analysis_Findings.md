@@ -1,6 +1,5 @@
 # Product Performance Analysis
 
-![ER Diagram reference](mermaid-diagram.png)
 ![alt text](mermaid-diagram_refund.png)
 
 ## Monthly Revenue Trends and Month-over-Month Growth
