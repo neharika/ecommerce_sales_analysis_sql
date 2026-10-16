@@ -327,6 +327,7 @@ SELECT
 FROM product_sales s
 LEFT JOIN product_returns r
     ON s.product_id = r.product_id
+    where s.units_sold>10
 ORDER BY return_rate_pct DESC, returned_units DESC;
 
 
@@ -369,3 +370,90 @@ limit 20
 SET search_path TO ecom;
 select * from product_variants
 where variant_id in (1198,4903,2529,128)
+
+
+
+SET search_path TO ecom;
+select * from order_status_history orh join
+orders o on o.order_id=orh.order_id
+limit 50
+
+
+
+SET search_path TO ecom;
+with ranked_history as (
+    select order_id,
+    lower(trim(status)) as history_status,
+    changed_at,
+    row_number() over (partition by order_id order by changed_at desc) as rn
+    from order_status_history
+),
+--select * from ranked_history
+ordering as (
+    select order_id,history_status,changed_at
+    from ranked_history
+    where rn=1
+)
+select o1.order_id,
+o1.status as latest_status,
+ord.history_status as latest_history_status,
+ord.changed_at as latest_status_change,
+case when lower(trim(o1.status))=ord.history_status
+    then 'Match' else 'Mismatch' end as status_check
+    from orders o1 join ordering ord on
+    o1.order_id=ord.order_id
+    where lower(trim(o1.status)) is distinct from ord.history_status
+    order by o1.order_id
+
+
+
+SET search_path TO ecom;
+select * from orders
+--where order_id=25543
+where lower(trim(status))= 'cancelled'
+
+SET search_path TO ecom;
+select * from order_status_history
+where order_id=25543
+
+
+SELECT
+    rr.return_id,
+    rr.order_id,
+    rr.status AS return_status,
+    ri.variant_id AS returned_variant_id,
+    p.product_name AS returned_product,
+    oi.variant_id AS purchased_variant_id,
+    p2.product_name AS purchased_product
+FROM return_requests rr
+JOIN return_items ri
+    ON ri.return_id = rr.return_id
+JOIN product_variants pv
+    ON pv.variant_id = ri.variant_id
+JOIN products p
+    ON p.product_id = pv.product_id
+LEFT JOIN order_items oi
+    ON oi.order_id = rr.order_id
+LEFT JOIN product_variants pv2
+    ON pv2.variant_id = oi.variant_id
+LEFT JOIN products p2
+    ON p2.product_id = pv2.product_id
+WHERE rr.return_id IN (1, 2, 3, 4, 5)
+ORDER BY rr.return_id, oi.variant_id;
+
+
+SET search_path TO ecom;
+with find_orders as (
+    select created_at, status, total,
+    ntile(4) over ( order by  created_at) as bin
+    --date_trunc('month',created_at) as 
+    from orders
+    where lower(trim(status)) ='delivered'
+)
+    select bin,min(created_at) as first_order,
+    max(created_at) as last_order,
+    count(*) as order_count,
+    sum(total) as revenue from find_orders
+    group by bin
+    order by bin
+

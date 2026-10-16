@@ -2,11 +2,11 @@
 
 ![ER Diagram reference](mermaid-diagram.png)
 
-##Business Question
+### Business Question
 
 Which products generate the highest gross realized revenue from delivered orders, and how does revenue compare with units sold and order reach?
 
-##SQL Approach
+## SQL Approach
 Joined orders, order_items, product_variants, and products.
 Used order_items.line_total to calculate product-level sales value instead of orders.total, which could duplicate order-level revenue across multiple items.
 Standardized order status using LOWER(TRIM(status)).
@@ -19,7 +19,7 @@ Average revenue per unit
 
 Gross realized revenue represents sales from delivered orders before refunds. It is not equivalent to net revenue or profit.
 
-##Key Findings
+## Key Findings
 1. Marigold Home Craft Lite Wireless Earbuds generated the highest realized revenue
 
 Marigold Home Craft Lite Wireless Earbuds ranked #1 with:
@@ -59,7 +59,7 @@ It has the highest average revenue per unit among the top 10 products, yet ranks
 
 This suggests a high-value, low-volume product profile.
 
-##Business Interpretation
+## Business Interpretation
 
 The top products show that product performance is driven by different combinations of price/value, unit volume, and order reach.
 
@@ -88,7 +88,7 @@ Marigold: high revenue + high value per unit
 Zyra: high volume + broad order reach
 Mirae: very high value per unit + low volume
 
-##Limitations and Next Steps
+## Limitations & Next Steps
 -Assess refunds on delivered orders and determine the extent to which refunds reduce realized revenue.
 -Calculate net realized revenue after refunds at the order/customer/country level where the refund data can be reliably linked.
 -Avoid assigning order-level refunds directly to individual products unless a reliable product-level refund relationship is available.
@@ -184,12 +184,84 @@ The high-revenue, high-volume profile identifies products that perform well acro
 - **Inventory analysis:** Compare sales volume with inventory availability to identify potential stock shortages or slow-moving products.
 - **Scope:** The classifications use a top-10 rank threshold for revenue and volume and include only delivered orders. They do not represent a complete segmentation of all products into high- and low-performing groups.
 
+## Product Analysis: Revenue in the Order Pipeline
 
-Top 10 Customers by Net Realized Revenue
-Business question:  
+### Business Question
+Which products account for the highest value of orders that have not yet reached a delivered or cancelled status?
+
+### Methodology
+- Joined `orders`, `order_items`, `product_variants`, and `products` to calculate product-level pipeline metrics.
+- Excluded orders currently marked `delivered` or `cancelled`, retaining the remaining order statuses.
+- Aggregated order-item revenue, units sold, and distinct order counts by product.
+- Ranked products by pipeline revenue to identify the ten products with the highest value in the current order pipeline.
+
+### Key Findings
+
+- **Eastlight Clarity ANC Headphones ranked first**, with pipeline revenue of 494,171 across 29 units and 24 orders.
+- **Smartwatches and headphones featured prominently** among the top ten products, suggesting that both product types account for substantial value in the orders currently being processed.
+- **Marigold Home Craft Lite Wireless Earbuds** contributed 323,586 in pipeline revenue from 14 units across 12 orders. Its relatively high revenue alongside lower unit volume illustrates why revenue rankings and volume rankings can differ.
+- **Pipeline value was distributed across multiple products:** the tenth-ranked product, TickTone Essentials Vital Smartwatch, accounted for 296,982 across 18 units and 14 orders.
+
+### Business Interpretation
+The products with the highest pipeline revenue represent areas where order fulfillment may have a meaningful impact on future delivered sales. Monitoring these products can help prioritize fulfillment reviews and identify where delays could affect the conversion of pending orders into completed sales.
+
+However, pipeline revenue is not realized revenue. These orders may still be in different stages of processing, and some may eventually be cancelled or otherwise fail to reach delivery. The analysis identifies current pipeline exposure, not guaranteed future revenue.
+
+### Limitations
+- Pipeline revenue is based on orders' current statuses at the time of analysis. It is a snapshot and does not show how long orders have remained in the pipeline.
+- The analysis excludes currently delivered and cancelled orders, but combines the remaining statuses rather than comparing them separately.
+- The query does not establish whether the orders will eventually be delivered. Historical order-status data would be needed to study transitions from pipeline statuses to delivered or cancelled outcomes.
+- Pipeline revenue should be reported separately from delivered revenue to avoid presenting pending order value as realized sales.
+
+
+### Top 10 Customers by Net Realized Revenue
+
+### Business Question  
 Q: Which customers generate the highest net realized revenue after accounting for refunds?
 
-Key finding:  
+### Key Findings  
 Shreya Menon is the highest-value customer, generating $665,147.72 in net realized revenue from $673,757.00 gross realized revenue, with $8,609.28 in refunds. The remaining top customers generated between approximately $506K and $590K in net realized revenue.
 
 One particularly useful observation is that 6 of the top 10 customers had no refunds, while the highest-ranked customer had the largest absolute refund amount. That doesn't necessarily mean Shreya is a problematic customer—the refund rate is only about 1.28%—but it is worth monitoring.
+
+
+## Revenue Trends: Fixed 14-Day Periods
+
+### Business Question
+
+How did revenue and delivered-order volume change across consecutive 14-day periods?
+
+### Methodology
+
+Used PostgreSQL's DATE_BIN() to group orders into fixed 14-day intervals, anchored at March 16, 2026.
+
+Filtered orders by their current status of delivered.
+
+Aggregated order count and revenue for each interval.
+
+Used LAG() to compare each period's revenue with the preceding period and calculate percentage growth.
+### Key Findings
+
+|14-Day Period|Delivered Orders|Revenue|Revenue Growth|
+| Mar 16–30, 2026 | 4,263 | 31,695,163.60 | — |
+| Mar 30–Apr 13, 2026 | 5,256 | 40,170,749.36 | +26.74% |
+| Apr 13–27, 2026 | 3,271 | 25,007,725.06 | -37.75% |
+| Apr 27–May 11, 2026 | 2,502 | 19,125,123.80 | -23.52% |
+| May 11–25, 2026 | 2,176 | 16,226,430.64 | -15.16% |
+| May 25–Jun 8, 2026 | 1,916 | 13,649,299.90 | -15.88% |
+| Jun 8–22, 2026 | 595 | 4,543,745.30 | -66.71% |
+
+*Period end timestamps are exclusive boundaries. For example, the period beginning March 16 ends at March 30 at 00:00 UTC.*
+
+### Business Interpretation
+
+- **Initial increase:** Revenue increased by 26.74% in the period beginning March 30, reaching 40.17 million.
+- **Sustained decline:** Revenue subsequently declined in each reported period, falling by 37.75% in the period beginning April 13 and continuing to decrease through the period beginning June 8.
+- **Order volume followed a similar pattern:** Delivered-order counts peaked at 5,256 in the second period and declined in each subsequent period.
+- **Incomplete final period:** The dataset ends on June 14, while the final 14-day interval ends on June 22. Therefore, the last period is incomplete and its revenue and order count should not be directly compared with those of full 14-day periods.
+
+### Limitations
+
+- The analysis groups orders by `created_at` and filters on their current status of `delivered`. It therefore measures revenue from orders currently marked delivered, grouped by order creation date—not revenue by actual delivery date.
+- The final period is incomplete, which contributes to its lower reported revenue and order count.
+- These results identify a downward trend in the observed data but do not establish its cause. Further investigation would be needed to distinguish changes in demand from fulfillment timing, data coverage, or other factors.

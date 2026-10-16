@@ -24,8 +24,30 @@ select * from search_product
 order by gross_realized_revenue DESC
 limit 10
 
+--Top 10 products in Pipeline
+SET search_path TO ecom;
+with search_product as (
+select p.product_id,p.product_name, 
+sum(oi.line_total) as pipeline_revenue,
+SUM(oi.qty) AS units_sold,
+COUNT(DISTINCT o.order_id) AS orders,
+ROUND(SUM(oi.line_total) / NULLIF(SUM(oi.qty), 0),2) AS avg_revenue_per_unit
+from orders o join order_items oi on oi.order_id=o.order_id
+join product_variants pv on pv.variant_id=oi.variant_id
+join Products p on p.product_id=pv.product_id
+WHERE LOWER(TRIM(o.status)) not in ('delivered','cancelled')
+GROUP BY p.product_name,p.product_id
+)
+select * from search_product
+order by pipeline_revenue DESC
+limit 10
+
+
+
 
 SET search_path TO ecom;
+select DISTINCT status from orders
+
 SELECT
     rr.return_id,
     rr.order_id,
@@ -36,7 +58,6 @@ JOIN return_items ri
     ON ri.return_id = rr.return_id
 LIMIT 20;
 
-SET search_path TO ecom;
 
 SET search_path TO ecom;
 SELECT
@@ -184,6 +205,33 @@ with revenue AS(
 
 
 SET search_path TO ecom;
+
+with binning as(
+    SELECT
+    date_bin(
+        INTERVAL '14 days',
+        created_at,
+        TIMESTAMPTZ '2026-03-16 00:00:00+00'
+    ) AS bin_start,
+    COUNT(*) AS order_count,
+    SUM(total) AS revenue
+FROM orders
+WHERE LOWER(TRIM(status)) = 'delivered'
+group by bin_start
+),
+lagging as (
+    select bin_start,
+    bin_start + INTERVAL '14 days' AS bin_end,
+    order_count,revenue,
+    lag(revenue) over (order by bin_start asc) as prev_bin_revenue
+    from binning 
+)
+select *,
+round((revenue-prev_bin_revenue)*100.0/prev_bin_revenue,2) as grwth_pct
+from lagging
+ORDER BY bin_start;
+
+
 SELECT
     to_char(DATE_TRUNC('month', created_at),'yyyy-mm') AS revenue_month,
     MIN(created_at) AS first_order_date,
