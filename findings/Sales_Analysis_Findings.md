@@ -2,6 +2,86 @@
 
 ![ER Diagram reference](mermaid-diagram.png)
 
+## Monthly Revenue Trends and Month-over-Month Growth
+
+### Business Question
+How did monthly revenue from currently delivered orders change over time, and was the change associated with order volume or average order value?
+
+### Methodology
+- Grouped orders by creation month using `DATE_TRUNC()`.
+- Filtered for orders whose current status is `delivered`.
+- Calculated monthly revenue, order count, and average order value (AOV).
+- Used `LAG()` to retrieve the previous month's revenue and calculate month-over-month (MoM) revenue growth.
+
+### Key Findings
+
+| Month | Delivered Orders | Revenue | MoM Revenue Growth | Average Order Value |
+|---|---:|---:|---:|---:|
+| March 2026* | 4,762 | 35,704,481.44 | — | 7,497.79 |
+| April 2026 | 8,718 | 66,617,965.02 | +86.58% | 7,641.43 |
+| May 2026 | 5,104 | 38,047,632.66 | -42.89% | 7,454.47 |
+| June 2026* | 1,395 | 10,048,158.54 | -73.59% | 7,202.98 |
+
+*March covers March 16–31; June covers June 1–14.*
+
+- **April recorded the highest revenue:** Revenue increased by 86.58% from March to April, reaching 66.62 million. Delivered-order volume rose from 4,762 to 8,718, while AOV increased modestly from 7,497.79 to 7,641.43.
+- **Revenue declined sharply in May:** Revenue fell by 42.89% to 38.05 million, while delivered-order volume decreased by approximately 41.5%. AOV declined by only about 2.4%, indicating that lower order volume was more closely associated with the revenue decline than a substantial change in average order value.
+- **June shows a further decline, but the month is incomplete:** Revenue was 10.05 million across 1,395 orders through June 14. The reported 73.59% decline is not a like-for-like monthly comparison because June contains only 14 days of data.
+
+### Business Interpretation
+April was the strongest month in the observed period, followed by a substantial decline in May. The relative stability of AOV between April and May, compared with the reduction in order volume, suggests that order volume was the more prominent factor associated with the revenue decline.
+
+This pattern warrants further investigation into customer ordering activity and fulfillment performance. The analysis identifies an observed trend but does not establish its cause.
+
+### Limitations
+- March and June are partial months; their MoM growth rates should not be interpreted as directly comparable full-month performance.
+- Orders are grouped by `created_at` and filtered by their current status of `delivered`. The results represent orders currently marked delivered, grouped by creation month—not revenue grouped by actual delivery date.
+- The data covers a limited period, so the observed decline should not be treated as proof of a sustained long-term trend.
+
+
+
+## Revenue Trends: Fixed 14-Day Periods
+
+### Business Question
+
+How did revenue and delivered-order volume change across consecutive 14-day periods?
+
+### Methodology
+
+Used PostgreSQL's DATE_BIN() to group orders into fixed 14-day intervals, anchored at March 16, 2026.
+
+Filtered orders by their current status of delivered.
+
+Aggregated order count and revenue for each interval.
+
+Used LAG() to compare each period's revenue with the preceding period and calculate percentage growth.
+### Key Findings
+
+|14-Day Period|Delivered Orders|Revenue|Revenue Growth|
+| Mar 16–30, 2026 | 4,263 | 31,695,163.60 | — |
+| Mar 30–Apr 13, 2026 | 5,256 | 40,170,749.36 | +26.74% |
+| Apr 13–27, 2026 | 3,271 | 25,007,725.06 | -37.75% |
+| Apr 27–May 11, 2026 | 2,502 | 19,125,123.80 | -23.52% |
+| May 11–25, 2026 | 2,176 | 16,226,430.64 | -15.16% |
+| May 25–Jun 8, 2026 | 1,916 | 13,649,299.90 | -15.88% |
+| Jun 8–22, 2026 | 595 | 4,543,745.30 | -66.71% |
+
+*Period end timestamps are exclusive boundaries. For example, the period beginning March 16 ends at March 30 at 00:00 UTC.*
+
+### Business Interpretation
+
+- **Initial increase:** Revenue increased by 26.74% in the period beginning March 30, reaching 40.17 million.
+- **Sustained decline:** Revenue subsequently declined in each reported period, falling by 37.75% in the period beginning April 13 and continuing to decrease through the period beginning June 8.
+- **Order volume followed a similar pattern:** Delivered-order counts peaked at 5,256 in the second period and declined in each subsequent period.
+- **Incomplete final period:** The dataset ends on June 14, while the final 14-day interval ends on June 22. Therefore, the last period is incomplete and its revenue and order count should not be directly compared with those of full 14-day periods.
+
+### Limitations
+
+- The analysis groups orders by `created_at` and filters on their current status of `delivered`. It therefore measures revenue from orders currently marked delivered, grouped by order creation date—not revenue by actual delivery date.
+- The final period is incomplete, which contributes to its lower reported revenue and order count.
+- These results identify a downward trend in the observed data but do not establish its cause. Further investigation would be needed to distinguish changes in demand from fulfillment timing, data coverage, or other factors.
+
+
 ### Business Question
 
 Which products generate the highest gross realized revenue from delivered orders, and how does revenue compare with units sold and order reach?
@@ -99,43 +179,6 @@ Mirae: very high value per unit + low volume
 -Assess profitability separately using product cost data, since revenue does not indicate margin or profit.
 
 
-## Overall Realized Revenue After Refunds
-
-### Business Question
-
-How much revenue was generated from delivered orders, and how much remained after accounting for refunds?
-
-### SQL Approach
-
-- Filtered orders to `delivered` status using `LOWER(TRIM(status))`.
-- Calculated gross realized revenue using `SUM(order_items.line_total)`.
-- Aggregated refund amounts from the `refunds` table, excluding records with a `failed` status.
-- Calculated net realized revenue by subtracting refunds from gross realized revenue.
-- Calculated the revenue refund rate as total refunds divided by gross realized revenue, multiplied by 100.
-
-### Key Findings
-
-The analysis returned the following results:
-
-| Metric                 |          Value |
-| ---------------------- | -------------: |
-| Gross realized revenue | 127,409,679.00 |
-| Total refunds          |   1,151,254.77 |
-| Net realized revenue   | 126,258,424.23 |
-| Revenue refund rate    |          0.90% |
-
-### Business Interpretation
-
-The initial results show gross realized revenue of 127.41 million and net realized revenue of 126.26 million after subtracting the reported refunds. The reported revenue refund rate is 0.90%, indicating that refunds account for a relatively small share of gross realized revenue.
-
-This metric provides a view of revenue retained after refunds and complements product and customer performance analyses. It can also serve as a baseline for investigating refund patterns across countries, customers and products.
-
-### Limitations and Next Steps
-
-- Treat net realized revenue as a revenue measure, not profit, because product costs and other operating expenses have not been deducted.
-- Analyze refund patterns by customer and country to identify where refunds have the greatest financial impact.
-
-
 ## High-Revenue vs. High-Volume Product Analysis
 
 ### Business Question
@@ -184,6 +227,92 @@ The high-revenue, high-volume profile identifies products that perform well acro
 - **Inventory analysis:** Compare sales volume with inventory availability to identify potential stock shortages or slow-moving products.
 - **Scope:** The classifications use a top-10 rank threshold for revenue and volume and include only delivered orders. They do not represent a complete segmentation of all products into high- and low-performing groups.
 
+
+
+### Top 10 Customers by Net Realized Revenue
+
+### Business Question  
+Q: Which customers generate the highest net realized revenue after accounting for refunds?
+
+### Key Findings  
+Shreya Menon is the highest-value customer, generating $665,147.72 in net realized revenue from $673,757.00 gross realized revenue, with $8,609.28 in refunds. The remaining top customers generated between approximately $506K and $590K in net realized revenue.
+
+One particularly useful observation is that 6 of the top 10 customers had no refunds, while the highest-ranked customer had the largest absolute refund amount. That doesn't necessarily mean Shreya is a problematic customer—the refund rate is only about 1.28%—but it is worth monitoring.
+
+
+## Country-Wise Revenue and Refund Analysis
+
+### Business Question
+How is net realized revenue distributed across countries, and how do refunds compare with gross revenue in each geographic market?
+
+### Methodology
+- Joined customer, order, order-item, and refund data to calculate country-level revenue and refunds.
+- Included orders currently marked as `delivered`.
+- Standardized missing or unavailable country values, including `NULL`, blank strings, `N/A`, and `Not Available`, into a single `Not Available` category.
+- Calculated gross revenue, total refunds, net realized revenue, and the revenue refund rate.
+
+### Key Findings
+
+| Country | Gross Revenue | Total Refunds | Net Realized Revenue | Revenue Refund Rate |
+|---|---:|---:|---:|---:|
+| India | 95,486,619.00 | 891,287.70 | 94,595,331.30 | 0.93% |
+| United States | 17,654,096.00 | 132,023.64 | 17,522,072.36 | 0.75% |
+| Not Available | 14,268,964.00 | 127,943.43 | 14,141,020.57 | 0.90% |
+
+### Key Insights
+
+- **India is the dominant revenue market:** India generated 94.60 million in net realized revenue, substantially exceeding the United States at 17.52 million.
+- **Unavailable country data represents material revenue:** The `Not Available` group contributed 14.14 million in net realized revenue. Excluding these records would understate reported revenue and obscure a meaningful portion of the business.
+- **Refund rates are relatively low across the reported groups:** Refunds represented 0.93% of gross revenue in India, 0.75% in the United States, and 0.90% for the unavailable-country group.
+- **India has the highest observed refund rate:** Its rate is 0.18 percentage points above the United States. This difference is descriptive and does not establish why refund rates differ.
+
+### Business Interpretation
+India is the largest revenue market in the observed dataset. The unavailable-country group is also commercially significant, highlighting a data-quality issue worth addressing. Improving country-data completeness would enable more reliable geographic segmentation and more informed market-level decisions.
+
+The observed refund rates can help prioritize further investigation, but they should not be interpreted as evidence of differences in customer satisfaction or product quality without additional analysis.
+
+### Limitations
+- The analysis includes orders currently marked as `delivered` and groups them by customer country.
+- The `Not Available` category combines records with missing or placeholder country values; these records cannot be attributed to a specific geographic market without further data cleaning or enrichment.
+- Refunds include records whose status is not `failed`. If this includes initiated but incomplete refunds, the reported refund totals may exceed completed refunds.
+- Revenue refund rate is calculated as total refunds divided by gross revenue; it is not the percentage of orders that were refunded.
+
+## Overall Realized Revenue After Refunds
+
+### Business Question
+
+How much revenue was generated from delivered orders, and how much remained after accounting for refunds?
+
+### SQL Approach
+
+- Filtered orders to `delivered` status using `LOWER(TRIM(status))`.
+- Calculated gross realized revenue using `SUM(order_items.line_total)`.
+- Aggregated refund amounts from the `refunds` table, excluding records with a `failed` status.
+- Calculated net realized revenue by subtracting refunds from gross realized revenue.
+- Calculated the revenue refund rate as total refunds divided by gross realized revenue, multiplied by 100.
+
+### Key Findings
+
+The analysis returned the following results:
+
+| Metric                 |          Value |
+| ---------------------- | -------------: |
+| Gross realized revenue | 127,409,679.00 |
+| Total refunds          |   1,151,254.77 |
+| Net realized revenue   | 126,258,424.23 |
+| Revenue refund rate    |          0.90% |
+
+### Business Interpretation
+
+The initial results show gross realized revenue of 127.41 million and net realized revenue of 126.26 million after subtracting the reported refunds. The reported revenue refund rate is 0.90%, indicating that refunds account for a relatively small share of gross realized revenue.
+
+This metric provides a view of revenue retained after refunds and complements product and customer performance analyses. It can also serve as a baseline for investigating refund patterns across countries, customers and products.
+
+### Limitations and Next Steps
+
+- Treat net realized revenue as a revenue measure, not profit, because product costs and other operating expenses have not been deducted.
+- Analyze refund patterns by customer and country to identify where refunds have the greatest financial impact.
+
 ## Product Analysis: Revenue in the Order Pipeline
 
 ### Business Question
@@ -212,56 +341,3 @@ However, pipeline revenue is not realized revenue. These orders may still be in 
 - The analysis excludes currently delivered and cancelled orders, but combines the remaining statuses rather than comparing them separately.
 - The query does not establish whether the orders will eventually be delivered. Historical order-status data would be needed to study transitions from pipeline statuses to delivered or cancelled outcomes.
 - Pipeline revenue should be reported separately from delivered revenue to avoid presenting pending order value as realized sales.
-
-
-### Top 10 Customers by Net Realized Revenue
-
-### Business Question  
-Q: Which customers generate the highest net realized revenue after accounting for refunds?
-
-### Key Findings  
-Shreya Menon is the highest-value customer, generating $665,147.72 in net realized revenue from $673,757.00 gross realized revenue, with $8,609.28 in refunds. The remaining top customers generated between approximately $506K and $590K in net realized revenue.
-
-One particularly useful observation is that 6 of the top 10 customers had no refunds, while the highest-ranked customer had the largest absolute refund amount. That doesn't necessarily mean Shreya is a problematic customer—the refund rate is only about 1.28%—but it is worth monitoring.
-
-
-## Revenue Trends: Fixed 14-Day Periods
-
-### Business Question
-
-How did revenue and delivered-order volume change across consecutive 14-day periods?
-
-### Methodology
-
-Used PostgreSQL's DATE_BIN() to group orders into fixed 14-day intervals, anchored at March 16, 2026.
-
-Filtered orders by their current status of delivered.
-
-Aggregated order count and revenue for each interval.
-
-Used LAG() to compare each period's revenue with the preceding period and calculate percentage growth.
-### Key Findings
-
-|14-Day Period|Delivered Orders|Revenue|Revenue Growth|
-| Mar 16–30, 2026 | 4,263 | 31,695,163.60 | — |
-| Mar 30–Apr 13, 2026 | 5,256 | 40,170,749.36 | +26.74% |
-| Apr 13–27, 2026 | 3,271 | 25,007,725.06 | -37.75% |
-| Apr 27–May 11, 2026 | 2,502 | 19,125,123.80 | -23.52% |
-| May 11–25, 2026 | 2,176 | 16,226,430.64 | -15.16% |
-| May 25–Jun 8, 2026 | 1,916 | 13,649,299.90 | -15.88% |
-| Jun 8–22, 2026 | 595 | 4,543,745.30 | -66.71% |
-
-*Period end timestamps are exclusive boundaries. For example, the period beginning March 16 ends at March 30 at 00:00 UTC.*
-
-### Business Interpretation
-
-- **Initial increase:** Revenue increased by 26.74% in the period beginning March 30, reaching 40.17 million.
-- **Sustained decline:** Revenue subsequently declined in each reported period, falling by 37.75% in the period beginning April 13 and continuing to decrease through the period beginning June 8.
-- **Order volume followed a similar pattern:** Delivered-order counts peaked at 5,256 in the second period and declined in each subsequent period.
-- **Incomplete final period:** The dataset ends on June 14, while the final 14-day interval ends on June 22. Therefore, the last period is incomplete and its revenue and order count should not be directly compared with those of full 14-day periods.
-
-### Limitations
-
-- The analysis groups orders by `created_at` and filters on their current status of `delivered`. It therefore measures revenue from orders currently marked delivered, grouped by order creation date—not revenue by actual delivery date.
-- The final period is incomplete, which contributes to its lower reported revenue and order count.
-- These results identify a downward trend in the observed data but do not establish its cause. Further investigation would be needed to distinguish changes in demand from fulfillment timing, data coverage, or other factors.
