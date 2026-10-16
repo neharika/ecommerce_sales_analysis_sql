@@ -457,3 +457,44 @@ with find_orders as (
     group by bin
     order by bin
 
+
+SET search_path TO ecom;
+select DISTINCT status from orders
+
+SELECT
+    rr.return_id,
+    rr.order_id,
+    ri.variant_id,
+    ri.qty AS returned_qty
+FROM return_requests rr
+JOIN return_items ri
+    ON ri.return_id = rr.return_id
+LIMIT 20;
+
+
+SET search_path TO ecom;
+SELECT
+    rr.return_id,
+    rr.order_id,
+    ri.variant_id,
+    ri.qty AS returned_qty,
+    oi.qty AS ordered_qty,
+    oi.unit_price,
+    oi.line_total
+FROM return_requests rr
+JOIN return_items ri
+    ON ri.return_id = rr.return_id
+JOIN order_items oi
+    ON oi.order_id = rr.order_id
+   AND oi.variant_id = ri.variant_id
+ORDER BY rr.return_id;
+
+SET search_path TO ecom;
+
+SELECT
+    status,
+    COUNT(*) AS refund_records,
+    ROUND(SUM(amount), 2) AS total_refund_amount
+FROM refunds
+GROUP BY status
+ORDER BY refund_records DESC;

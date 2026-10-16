@@ -22,69 +22,9 @@ GROUP BY p.product_name,p.product_id
 )
 select * from search_product
 order by gross_realized_revenue DESC
-limit 10
-
---Top 10 products in Pipeline
-SET search_path TO ecom;
-with search_product as (
-select p.product_id,p.product_name, 
-sum(oi.line_total) as pipeline_revenue,
-SUM(oi.qty) AS units_sold,
-COUNT(DISTINCT o.order_id) AS orders,
-ROUND(SUM(oi.line_total) / NULLIF(SUM(oi.qty), 0),2) AS avg_revenue_per_unit
-from orders o join order_items oi on oi.order_id=o.order_id
-join product_variants pv on pv.variant_id=oi.variant_id
-join Products p on p.product_id=pv.product_id
-WHERE LOWER(TRIM(o.status)) not in ('delivered','cancelled')
-GROUP BY p.product_name,p.product_id
-)
-select * from search_product
-order by pipeline_revenue DESC
-limit 10
+limit 10;
 
 
-
-
-SET search_path TO ecom;
-select DISTINCT status from orders
-
-SELECT
-    rr.return_id,
-    rr.order_id,
-    ri.variant_id,
-    ri.qty AS returned_qty
-FROM return_requests rr
-JOIN return_items ri
-    ON ri.return_id = rr.return_id
-LIMIT 20;
-
-
-SET search_path TO ecom;
-SELECT
-    rr.return_id,
-    rr.order_id,
-    ri.variant_id,
-    ri.qty AS returned_qty,
-    oi.qty AS ordered_qty,
-    oi.unit_price,
-    oi.line_total
-FROM return_requests rr
-JOIN return_items ri
-    ON ri.return_id = rr.return_id
-JOIN order_items oi
-    ON oi.order_id = rr.order_id
-   AND oi.variant_id = ri.variant_id
-ORDER BY rr.return_id;
-
-SET search_path TO ecom;
-
-SELECT
-    status,
-    COUNT(*) AS refund_records,
-    ROUND(SUM(amount), 2) AS total_refund_amount
-FROM refunds
-GROUP BY status
-ORDER BY refund_records DESC;
 --Realized revenue after refunds
 SET search_path TO ecom;
 with delivered_revenue as(
@@ -104,9 +44,7 @@ round(gross_realized_revenue,2) as gross_realized_revenue,
 round(refund_amount,2) as total_refunds,
 round(gross_realized_revenue-refund_amount,2) as net_realized_revenue,
 round(refund_amount *100/nullif(gross_realized_revenue,0),2)as refund_rate_pct
-FROM delivered_revenue,refund_calculation
-
-
+FROM delivered_revenue,refund_calculation;
 
 
 --High revenue Vs high volume products
@@ -166,14 +104,23 @@ ORDER BY
     revenue_rank,
     volume_rank;
 
---Incorporate returns/refunds
+--Top 10 products in Pipeline
 SET search_path TO ecom;
-SELECT
-    LOWER(TRIM(status)) AS return_status,
-    COUNT(*) AS request_count
-FROM return_requests
-GROUP BY LOWER(TRIM(status))
-ORDER BY request_count DESC;
+with search_product as (
+select p.product_id,p.product_name, 
+sum(oi.line_total) as pipeline_revenue,
+SUM(oi.qty) AS units_sold,
+COUNT(DISTINCT o.order_id) AS orders,
+ROUND(SUM(oi.line_total) / NULLIF(SUM(oi.qty), 0),2) AS avg_revenue_per_unit
+from orders o join order_items oi on oi.order_id=o.order_id
+join product_variants pv on pv.variant_id=oi.variant_id
+join Products p on p.product_id=pv.product_id
+WHERE LOWER(TRIM(o.status)) not in ('delivered','cancelled')
+GROUP BY p.product_name,p.product_id
+)
+select * from search_product
+order by pipeline_revenue DESC
+limit 10;
 
 
 --Monthly Revenue from delivered orders
