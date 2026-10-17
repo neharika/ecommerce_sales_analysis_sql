@@ -35,6 +35,7 @@ ORDER BY
     order_count DESC;
 
 --Status Discrepancy 
+--(orders.status Vs order_status_history latest status-history record)
 SET search_path TO ecom;
 with ranked_history as (
     select order_id,
@@ -60,6 +61,8 @@ case when lower(trim(o1.status))=ord.history_status
     order by o1.order_id
 
 --Status Discrepancy Timestamp check
+--Check whether the latest history timestamp
+--precedes the order creation timestamp
 SET search_path TO ecom;
 WITH latest_status AS (
     SELECT DISTINCT ON (order_id)
