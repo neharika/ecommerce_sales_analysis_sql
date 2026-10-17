@@ -1,7 +1,7 @@
 # E-commerce Sales Analysis | SQL
 
 **Author:** Neharika Mandhan  
-**Project Type:** Data Analytics | Business Intelligence  
+**Project Type:** Data Analytics  
 **Tools:** PostgreSQL | SQL | Git | GitHub
 
 ## Project Overview

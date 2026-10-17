@@ -10,6 +10,58 @@ Unknown / Not Provided	1,000	        10.00%
 Total	                10,000	        100.00%
 
 
+### Customers with the Highest Order Frequency
+
+### Business Question  
+Which customers place orders most frequently?
+
+### Methodology
+ Counted orders by customer ID and ranked customers by order count in descending order.
+
+### Key Findings 
+The highest-frequency customer in the observed results placed 178 orders, followed by customers with 176 and 170 orders.
+
+### Business interpretation
+A small group of customers may contribute substantially to order activity. Comparing these customers' order frequency with their net revenue and refund rates can help distinguish frequent purchasing from high-value purchasing.
+
+### Limitations
+ Order frequency alone does not measure profitability, net revenue, or customer loyalty over time.
+
+
+# Customer Segmentation Analysis
+
+## 1. Customer Purchase Frequency
+
+### Business Question
+What proportion of customers make only one purchase, and how many return to place additional orders?
+
+### Methodology
+- Counted distinct orders for each customer using the `orders` table.
+- Classified customers with exactly one order as one-time purchasers.
+- Calculated the one-time-purchaser share among customers who placed at least one order.
+
+### Key Findings
+
+| Metric | Result |
+|---|---:|
+| Total customers                  | 10,000 |
+| Customers with at least one order | 8,800 |
+| Customers with exactly one order | 4,999 |
+| Customers with multiple orders | 3,801 |
+| One-time purchasers among customers with orders | 56.81% |
+| One-time purchasers among all customers | 49.99% |
+| Customers with no recorded orders | 1,200 |
+
+### Business Interpretation
+One-time purchasers account for 56.81% of customers who placed at least one order. The remaining 43.19% of customers with orders made multiple purchases.
+
+This indicates an opportunity to investigate repeat-purchase behavior and customer retention. However, the analysis alone does not establish why customers did not return.
+
+### Business Recommendation
+Investigate purchase frequency, time between orders, and customer spending patterns to identify opportunities to encourage repeat purchases.
+
+### Limitation
+This analysis counts all recorded orders regardless of current order status. The results therefore describe recorded purchase frequency, not necessarily completed or delivered purchases.
 
 ### Top 10 Customers by Net Realized Revenue
 

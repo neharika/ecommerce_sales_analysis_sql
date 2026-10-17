@@ -5,7 +5,6 @@ select count(distinct customer_id)
 from customers;
 
 --Customer Distribution by Country
---Customer_Demographics
 SET search_path TO ecom;
 with customer_country as(
 select 
@@ -24,6 +23,52 @@ round(count(*)::numeric/sum(count(*))over()*100,2) as pct_per_country
 from customer_country
 group by country_name
 order by Total_no_Customers DESC;
+
+--Customers with the highest order frequency
+SET search_path TO ecom;
+select distinct c.customer_id,c.first_name,
+COUNT(DISTINCT o.order_id)
+from orders o join customers c
+on o.customer_id=c.customer_id
+group by c.customer_id
+order by 3 desc
+
+-- Customer Purchase Frequency
+-- Calculate one-time purchasers and repeat-purchase behavior
+SET search_path TO ecom;
+WITH customer_order_counts AS (
+    SELECT
+        c.customer_id,
+        COUNT(DISTINCT o.order_id) AS order_count
+    FROM customers c
+    LEFT JOIN orders o
+        ON o.customer_id = c.customer_id
+    GROUP BY c.customer_id
+)
+SELECT
+    COUNT(*) FILTER (
+        WHERE order_count = 1
+    ) AS one_time_customers,
+
+    COUNT(*) FILTER (
+        WHERE order_count > 0
+    ) AS customers_with_orders,
+
+    COUNT(*) AS total_customers,
+
+    ROUND(
+        100.0 * COUNT(*) FILTER (WHERE order_count = 1)
+        / NULLIF(COUNT(*) FILTER (WHERE order_count > 0), 0),
+        2
+    ) AS one_time_share_among_customers_with_orders_pct,
+
+    ROUND(
+        100.0 * COUNT(*) FILTER (WHERE order_count = 1)
+        / NULLIF(COUNT(*), 0),
+        2
+    ) AS one_time_share_among_all_customers_pct
+
+FROM customer_order_counts;
 
 
 --Top 10 Customers
