@@ -4,6 +4,27 @@ SET search_path TO ecom;
 select count(distinct customer_id)
 from customers;
 
+--Customer Distribution by Country
+--Customer_Demographics
+SET search_path TO ecom;
+with customer_country as(
+select 
+CASE
+    WHEN country IS NULL
+         OR TRIM(country) = ''
+         OR UPPER(TRIM(country)) IN ('N/A', 'NA', 'UNKNOWN')
+    THEN 'Unknown / Not Provided'
+    ELSE TRIM(country)
+END AS country_name
+from customers
+)
+select country_name,
+count(*) as Total_no_Customers,
+round(count(*)::numeric/sum(count(*))over()*100,2) as pct_per_country
+from customer_country
+group by country_name
+order by Total_no_Customers DESC;
+
 
 --Top 10 Customers
 SET search_path TO ecom;
