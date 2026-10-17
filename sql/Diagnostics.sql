@@ -112,7 +112,6 @@ JOIN item_revenue ir
   ON o.order_id = ir.order_id;
 
 
-SET search_path TO ecom;
 
 SELECT count (distinct order_id) 
 from order_items
@@ -224,21 +223,7 @@ FROM order_refunds;
 
 
 SET search_path TO ecom;
-SELECT
-    payment_status,
-    LOWER(TRIM(status)) AS status1,
-    COUNT(*) AS order_count,
-    ROUND(
-        COUNT(*)::numeric
-        / SUM(COUNT(*)) OVER () * 100,
-        2
-    ) AS pct_of_orders
-FROM orders
-GROUP BY
-    payment_status,
-    LOWER(TRIM(status))
-ORDER BY
-    order_count DESC;
+
 
 
 SET search_path TO ecom;
@@ -381,32 +366,40 @@ limit 50
 
 
 
+
 SET search_path TO ecom;
-with ranked_history as (
-    select order_id,
-    lower(trim(status)) as history_status,
-    changed_at,
-    row_number() over (partition by order_id order by changed_at desc) as rn
-    from order_status_history
-),
---select * from ranked_history
-ordering as (
-    select order_id,history_status,changed_at
-    from ranked_history
-    where rn=1
+SET search_path TO ecom;
+
+WITH latest_status AS (
+    SELECT DISTINCT ON (order_id)
+        order_id,
+        status AS history_status,
+        changed_at
+    FROM order_status_history
+    ORDER BY order_id, changed_at DESC
 )
-select o1.order_id,
-o1.status as latest_status,
-ord.history_status as latest_history_status,
-ord.changed_at as latest_status_change,
-case when lower(trim(o1.status))=ord.history_status
-    then 'Match' else 'Mismatch' end as status_check
-    from orders o1 join ordering ord on
-    o1.order_id=ord.order_id
-    where lower(trim(o1.status)) is distinct from ord.history_status
-    order by o1.order_id
-
-
+SELECT
+    o.order_id,
+    o.status AS orders_status,
+    ls.history_status,
+    o.created_at,
+    ls.changed_at,
+    CASE
+        WHEN LOWER(TRIM(o.status))
+             IS DISTINCT FROM LOWER(TRIM(ls.history_status))
+         AND ls.changed_at < o.created_at
+            THEN 'Status mismatch + timestamp anomaly'
+        WHEN LOWER(TRIM(o.status))
+             IS DISTINCT FROM LOWER(TRIM(ls.history_status))
+            THEN 'Status mismatch only'
+        WHEN ls.changed_at < o.created_at
+            THEN 'Timestamp anomaly only'
+        ELSE 'No issue detected by these checks'
+    END AS data_quality_check
+FROM orders o
+JOIN latest_status ls
+    ON ls.order_id = o.order_id
+ORDER BY o.order_id, data_quality_check desc;
 
 SET search_path TO ecom;
 select * from orders
