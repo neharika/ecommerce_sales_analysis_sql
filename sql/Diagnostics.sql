@@ -114,12 +114,13 @@ JOIN item_revenue ir
 
 SET search_path TO ecom;
 
-select * from orders
-order by order_id
-limit 20
-    SELECT *
+SELECT count (distinct order_id) 
+from order_items
+
+;
+    SELECT distinct(order_id)
     FROM order_items
-   limit 20
+   limit 20;
 
 
 --Top 10 Products by realized revenue
