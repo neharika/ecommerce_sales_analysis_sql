@@ -143,3 +143,32 @@ The high-revenue, high-volume profile identifies products that perform well acro
 - **Inventory analysis:** Compare sales volume with inventory availability to identify potential stock shortages or slow-moving products.
 - **Scope:** The classifications use a top-10 rank threshold for revenue and volume and include only delivered orders. They do not represent a complete segmentation of all products into high- and low-performing groups.
 
+
+## Product Analysis: Revenue in the Order Pipeline
+
+### Business Question
+Which products account for the highest value of orders that have not yet reached a delivered or cancelled status?
+
+### Methodology
+- Joined `orders`, `order_items`, `product_variants`, and `products` to calculate product-level pipeline metrics.
+- Excluded orders currently marked `delivered` or `cancelled`, retaining the remaining order statuses.
+- Aggregated order-item revenue, units sold, and distinct order counts by product.
+- Ranked products by pipeline revenue to identify the ten products with the highest value in the current order pipeline.
+
+### Key Findings
+
+- **Eastlight Clarity ANC Headphones ranked first**, with pipeline revenue of 494,171 across 29 units and 24 orders.
+- **Smartwatches and headphones featured prominently** among the top ten products, suggesting that both product types account for substantial value in the orders currently being processed.
+- **Marigold Home Craft Lite Wireless Earbuds** contributed 323,586 in pipeline revenue from 14 units across 12 orders. Its relatively high revenue alongside lower unit volume illustrates why revenue rankings and volume rankings can differ.
+- **Pipeline value was distributed across multiple products:** the tenth-ranked product, TickTone Essentials Vital Smartwatch, accounted for 296,982 across 18 units and 14 orders.
+
+### Business Interpretation
+The products with the highest pipeline revenue represent areas where order fulfillment may have a meaningful impact on future delivered sales. Monitoring these products can help prioritize fulfillment reviews and identify where delays could affect the conversion of pending orders into completed sales.
+
+However, pipeline revenue is not realized revenue. These orders may still be in different stages of processing, and some may eventually be cancelled or otherwise fail to reach delivery. The analysis identifies current pipeline exposure, not guaranteed future revenue.
+
+### Limitations
+- Pipeline revenue is based on orders' current statuses at the time of analysis. It is a snapshot and does not show how long orders have remained in the pipeline.
+- The analysis excludes currently delivered and cancelled orders, but combines the remaining statuses rather than comparing them separately.
+- The query does not establish whether the orders will eventually be delivered. Historical order-status data would be needed to study transitions from pipeline statuses to delivered or cancelled outcomes.
+- Pipeline revenue should be reported separately from delivered revenue to avoid presenting pending order value as realized sales.

@@ -64,55 +64,6 @@ ORDER BY bin_start;
 
 
 
---Country Wise Revenue
-SET search_path TO ecom;
-
-WITH cust_demo AS (
-SELECT 
-     case 
-    when lower(trim(c.country)) in ('','n/a','na') 
-    or c.country is null
-        then 'Not Available'
-        else trim(c.country)
-        end as country,
-    SUM(oi.line_total) AS gross_revenue
-    FROM customers c JOIN orders o
-        ON o.customer_id = c.customer_id
-    JOIN order_items oi
-        ON oi.order_id = o.order_id
-    WHERE LOWER(TRIM(o.status)) = 'delivered'
-    GROUP BY 1
-),
-refund_calculation AS (
-    SELECT
-       case 
-        when lower(trim(c.country)) in ('','n/a','na') 
-        or c.country is null
-        then 'Not Available'
-        else trim(c.country)
-        end as country,
-        SUM(r.amount) AS refund_amount
-        FROM customers c JOIN orders o
-        ON o.customer_id = c.customer_id
-        JOIN refunds r
-        ON r.order_id = o.order_id
-        WHERE LOWER(TRIM(o.status)) = 'delivered'
-        AND LOWER(TRIM(r.status)) <> 'failed'
-
-    GROUP BY 1
-)
-
-SELECT 
-   d.country,
-    ROUND(d.gross_revenue, 2) AS gross_revenue,
-    ROUND(COALESCE(r.refund_amount, 0), 2) AS total_refunds,
-    ROUND(d.gross_revenue - COALESCE(r.refund_amount, 0),2) AS net_realized_revenue,
-    ROUND(COALESCE(r.refund_amount, 0) * 100/ NULLIF(d.gross_revenue, 0),2) AS revenue_refund_rate
-
-FROM cust_demo d
-LEFT JOIN refund_calculation r
-    ON d.country = r.country
-ORDER BY net_realized_revenue DESC;
 
 
 
