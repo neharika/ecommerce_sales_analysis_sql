@@ -7,7 +7,7 @@ from orders;
 SET search_path TO ecom;
 select distinct status from orders;
 
---Total Revenue so far
+--Total Revenue 
 SET search_path TO ecom;
 with revenue_grouping as(
 select lower(trim(status)) as status1,
