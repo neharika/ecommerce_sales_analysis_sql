@@ -2,7 +2,21 @@
 --Total No Of Orders (40,000)
 SET search_path TO ecom;
 select count(*) as Total_No_Orders
-from orders
+from orders;
+
+SET search_path TO ecom;
+select distinct status from orders;
+
+--Total Revenue so far
+SET search_path TO ecom;
+with revenue_grouping as(
+select lower(trim(status)) as status1
+
+     from orders
+)
+select delivered_revenue,pipeline_revenue from 
+revenue_grouping
+group by lower(trim(status))
 
 
 --Order State Distribution
