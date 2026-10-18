@@ -2,72 +2,81 @@
 
 **Author:** Neharika Mandhan  
 **Project Type:** Data Analytics  
-**Tools:** PostgreSQL | SQL | Git | GitHub
+**Tools:** PostgreSQL · SQL · Git · GitHub
 
 ## Project Overview
 
-This project analyzes e-commerce sales data using PostgreSQL to uncover insights into revenue performance, customer behavior, product performance, and order fulfillment.
+How much of the recorded order activity translates into delivered sales, which customers return to purchase again, and how do revenue trends change over time?
 
-The objective is to transform raw transactional data into actionable business insights by writing SQL queries, evaluating business performance metrics, and investigating data quality issues that may affect reporting accuracy.
+This project uses PostgreSQL to explore these questions in an e-commerce dataset containing 40,000 orders and 10,000 customers. I analyzed order statuses, monthly revenue, customer purchasing frequency, product performance, refunds, and data quality to understand what the data reveals—and where its limitations matter.
 
-## Business Objectives
+## Key Findings
 
-- Analyze revenue and sales performance across products and customers.
-- Identify top-performing products based on revenue and units sold.
-- Understand customer distribution across countries.
-- Evaluate order statuses and distinguish completed sales from orders still in progress.
-- Examine refunds and their impact on realized revenue.
-- Investigate inconsistencies in transactional data and document analytical limitations.
+- **Order fulfillment:** 19,979 orders (49.95%) are currently marked as delivered, while 2,178 (5.45%) are cancelled. The remaining orders have other recorded statuses and should not automatically be classified as lost sales.
+- **Revenue trends:** Monthly revenue from currently delivered orders peaked at ₹66.62 million in April 2026, then declined to ₹38.05 million in May. The June figure of ₹10.05 million covers only June 1–14.
+- **Customer retention:** Of 8,800 customers with at least one recorded order, 4,999 placed exactly one order—56.81% of customers who had ordered.
+- **Data quality:** Comparing current order statuses with the latest available status-history records identified 134 discrepancies requiring further investigation.
 
-## Tools & Skills
+## Business Questions
 
-- **SQL:** Joins, Common Table Expressions (CTEs), aggregate functions, conditional logic, window functions, and date-based analysis.
-- **PostgreSQL:** Data querying, aggregation, and analytical calculations.
-- **Data Analysis:** KPI calculation, customer segmentation, product ranking, revenue analysis, and data quality assessment.
-- **Git & GitHub:** Version control and project documentation.
+The analysis explores five areas:
+
+1. **Revenue performance:** How did monthly revenue change, and what happened to revenue across consecutive 14-day periods?
+2. **Product performance:** Which products generate the most revenue, and do the highest-revenue products also sell the most units?
+3. **Customer behavior:** How concentrated is purchasing activity, and what proportion of customers place repeat orders?
+4. **Geographic performance:** How is revenue distributed across customer countries, including records with missing or uninformative country values?
+5. **Refunds and data quality:** How do recorded refunds affect realized revenue, and which data inconsistencies could affect reporting?
+
+## Tools and SQL Techniques
+
+- **PostgreSQL:** Querying, aggregation, and data validation.
+- **SQL:** Joins, CTEs, `CASE`, `DATE_TRUNC()`, `LAG()`, `DENSE_RANK()`, and window functions.
+- **Business analysis:** Revenue and AOV calculations, customer purchase-frequency analysis, product ranking, refund analysis, and order-status evaluation.
+- **Git and GitHub:** Version control, repository organization, and documentation.
 
 ## Repository Structure
 
 ```text
 ecommerce_sales_analysis_sql/
 ├── sql/
-│   ├── 05_customer.sql
+│   ├── 01_exploration.sql
+│   ├── 02_revenue.sql
+│   ├── 03_customers.sql
 │   └── ...
 ├── findings/
-│   ├── customers.md
+│   ├── 00_executive_summary.md
+│   ├── 01_business_overview.md
+│   ├── 02_business_health.md
+│   ├── 03_customer_segments.md
 │   └── ...
 ├── .gitignore
 └── README.md
 ```
 
-The `sql/` directory contains analytical queries, while `findings/` documents the business questions, results, interpretations, and limitations associated with the analysis.
+The `sql/` directory contains the queries used for the analysis. The `findings/` directory documents the business questions, key results, interpretations, and limitations.
 
-## Key Findings
+## What I'd Analyze Next
 
-The analysis examines several areas of e-commerce performance:
+The current analysis identifies several areas worth investigating further:
 
-- **Customer Demographics:** India accounts for 76.41% of customers, the United States accounts for 13.59%, and 10% have missing or uninformative country information.
-- **Product Performance:** Products are evaluated by revenue, units sold, and order count to distinguish high-revenue products from high-volume products.
-- **Order Fulfillment:** Order statuses are examined to understand the distribution of delivered orders and orders still in progress.
-- **Refund Analysis:** Refund records are investigated to assess their effect on realized revenue.
-- **Data Quality:** Differences between order-level totals and item-level amounts are examined to identify potential reporting inconsistencies.
+- **Understand the revenue decline:** Break down changes in order volume and average order value, and investigate whether the observed pattern is related to customer activity, fulfillment timing, or incomplete data coverage.
+- **Investigate repeat purchasing:** Examine the time between a customer's first and second orders, compare spending across purchase-frequency groups, and identify potential opportunities to improve retention.
+- **Evaluate product performance after refunds:** Validate item-level return relationships before estimating product-level net revenue or returned-unit rates.
+- **Investigate order-status discrepancies:** Determine why 134 orders have different statuses in the orders table and the latest available status-history record.
+- **Improve geographic reporting:** Assess the impact of missing or inconsistent country values while preserving the revenue associated with those records.
 
-*Detailed results and supporting SQL queries are documented in the `findings/` and `sql/` directories.*
+These are proposed follow-up analyses, not conclusions established by the current work.
 
-## Analytical Approach
+## Analytical Limitations
 
-1. Define business questions and relevant performance metrics.
-2. Query and combine data from related tables.
-3. Calculate revenue, customer, product, and order metrics.
-4. Investigate data quality issues and validate assumptions.
-5. Document findings, limitations, and recommended next steps.
-
-## Project Status
-
-This project is being developed iteratively. Findings are documented alongside the SQL queries used to generate them, with a focus on transparent calculations, data validation, and business relevance.
+- Revenue is calculated using `order_items.line_total` for orders currently marked as delivered.
+- Monthly and 14-day trends are grouped by order creation date, not actual delivery date.
+- March and June are partial months in the monthly analysis; the final 14-day window is also incomplete.
+- The status-history comparison identifies discrepancies but does not establish which status is correct.
+- Refund calculations depend on the available refund records. Product-level net revenue remains limited until item-level return relationships are validated.
+- Country-level findings depend on the quality and completeness of customer-country information.
 
 ## Author
 
-**Neharika Mandhan**
-
-Aspiring Data Analyst | SQL | PostgreSQL | Business Analytics
+**Neharika Mandhan**  
+Aspiring Data Analyst | SQL · PostgreSQL · Business Analytics

@@ -92,7 +92,7 @@ ORDER BY
     END;
 
 -- Customer Purchase Frequency
--- Calculate one-time purchasers and repeat-purchase behavior
+-- 1-time purchasers and repeat-purchase behavior
 SET search_path TO ecom;
 WITH customer_order_counts AS (
     SELECT
