@@ -29,8 +29,18 @@ A small group of customers may contribute substantially to order activity. Compa
 
 
 # Customer Segmentation Analysis
+### 1-Time vs. Repeat Customer Analysis
 
-## 1. Customer Purchase Frequency
+The analysis identified 8,800 customers with orders: 4,999 one-time customers (56.81%) and 3,801 repeat customers (43.19%). Repeat customers contributed 111.56 million in delivered revenue, representing 87.56% of total delivered revenue, while one-time customers contributed 15.85 million (12.44%).
+
+**Key insight:** Repeat customers account for a smaller share of customers but contribute the majority of delivered revenue. This highlights customer retention as an area for further investigation.
+
+**Business implication:** Further analysis could examine repeat-purchase frequency, time between purchases, and customer retention patterns to identify opportunities to encourage subsequent purchases.
+
+**Methodology note:** Customers are classified using their total recorded orders across all statuses. Revenue includes only orders currently marked as delivered and is calculated using `order_items.line_total`. The analysis does not deduct refunds from customer-level revenue.
+
+
+##  Customer Purchase Frequency
 
 ### Business Question
 What proportion of customers make only one purchase, and how many return to place additional orders?
@@ -63,39 +73,36 @@ Investigate purchase frequency, time between orders, and customer spending patte
 ### Limitation
 This analysis counts all recorded orders regardless of current order status. The results therefore describe recorded purchase frequency, not necessarily completed or delivered purchases.
 
-### Top 10 Customers by Net Realized Revenue
 
-### Business Question  
-Q: Which customers generate the highest net realized revenue after accounting for refunds?
 
+## VIP Customer Profiling: Spend, Purchase Frequency, and Average Order Value
+
+### Business Question
+Do the highest-revenue customers generate more revenue through frequent purchases or higher average order values?
 
 ### Methodology
-- Summed order_items.line_total for orders currently marked as delivered.
+- Identified the top 10 customers by gross realized revenue from orders currently marked as `delivered`.
+- Calculated customer-level revenue using `order_items.line_total`.
+- Counted distinct delivered orders to measure purchase frequency within the dataset.
+- Calculated average order value (AOV) as gross realized revenue divided by the number of distinct delivered orders.
+- Ranked customers using `DENSE_RANK()` in descending order of revenue.
 
-- Aggregated refunds by customer, excluding refund records with a failed status.
+### Key Findings
 
-- Subtracted recorded refunds from gross realized revenue.
+- **Highest-spending customer:** Shreya Menon ranked first, generating 673,757.00 across 90 delivered orders, with an AOV of 7,486.19.
+- **Highest purchase frequency:** Reyansh Deshpande recorded 102 delivered orders, generating 521,186.00. Despite the highest order count among these customers, his AOV was the lowest in the top 10 at 5,109.67.
+- **Highest AOV:** Vivaan Naidu recorded an AOV of 10,436.72 across 53 delivered orders, the highest among the top 10. His total revenue was 553,146.00.
+- **Revenue through different purchasing patterns:** Harsha Banerjee generated 591,957.00 from 95 orders at an AOV of 6,231.13, whereas Emma Wilson generated 563,657.00 from 70 orders at a higher AOV of 8,052.24.
+- **Customer-data completeness:** Three of the top 10 customers have unavailable country information, limiting geographic segmentation of this high-value customer group.
 
-- Ranked customers by net realized revenue using DENSE_RANK().
+### Business Interpretation
+The results show different purchasing patterns among the highest-revenue customers. Some customers generate substantial revenue through frequent orders, while others generate comparable revenue through fewer, higher-value orders.
 
-### Key Findings  
-
-Shreya Menon ranked first, with net realized revenue of ₹ 665,147.72. from ₹ 673,757.00 gross realized revenue with Rs 8,609.28 in refunds. (Country : Not Provided)
-
-Harsha Banerjee ranked second, with ₹ 590,489.65. (Country : Not Provided)
-
-Mahima Jain ranked third, with ₹ 567,248.78 from India.
-
-Three of the ten displayed customers had country information classified as Unknown / Not Provided.
-
-One particularly useful observation is that 6 of the top 10 customers had no refunds, while the highest-ranked customer had the largest absolute refund amount. That doesn't necessarily mean Shreya is a problematic customer—the refund rate is only about 1.28%—but it is worth monitoring.
+This distinction can help guide further customer analysis. High-frequency customers may be suitable candidates for retention initiatives, while customers with higher AOV may warrant investigation into their product mix and basket composition. These are potential strategies to evaluate, not proven outcomes from this analysis alone.
 
 ### Limitations
-
-Revenue includes orders currently marked as delivered, rather than all historical orders regardless of current status.
-
-Refund calculations include non-failed refund records linked to currently delivered orders.
-
-The results depend on the completeness and accuracy of the refund records and customer-country data.
-
-
+- The VIP segment is defined as the top 10 customers by revenue in this dataset; it is not a validated customer-lifecycle or loyalty classification.
+- Purchase frequency represents the number of distinct delivered orders observed in the available data, not an annual or monthly purchase rate.
+- AOV is calculated from `order_items.line_total` and may differ from average order value based on `orders.total`.
+- The analysis measures gross realized revenue and does not deduct customer-level refunds.
+- Revenue rankings do not measure customer profitability because customer-specific costs are not included.

@@ -35,3 +35,17 @@ Returns Data Limitation
 The return_items data cannot currently be reliably joined at the item level for return analysis. Therefore, net revenue calculations should remain at the order level until the return-item relationships are validated.
 
 Product-level net revenue and returned-unit rates should not be reported until the item-level return relationships have been verified.
+
+### Total No of customers
+10,000
+
+
+### Overall Revenue and Pipeline Snapshot
+Delivered revenue
+150.42M
+Orders currently marked delivered
+
+
+Pipeline order value
+132.44M
+Placed, paid, packed, shipped
