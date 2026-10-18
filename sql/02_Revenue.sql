@@ -61,7 +61,95 @@ from lagging
 ORDER BY bin_start;
 
 
+--Top 10 Products by Gross Realized Revenue
+SET search_path TO ecom;
+with search_product as (
+select p.product_id,p.product_name, 
+sum(oi.line_total) as gross_realized_revenue,
+SUM(oi.qty) AS units_sold,
+COUNT(DISTINCT o.order_id) AS orders,
+ROUND(
+    SUM(oi.line_total) / NULLIF(SUM(oi.qty), 0),
+    2
+) AS avg_revenue_per_unit
+from orders o join order_items oi on oi.order_id=o.order_id
+join product_variants pv on pv.variant_id=oi.variant_id
+join Products p on p.product_id=pv.product_id
+WHERE LOWER(TRIM(o.status)) = 'delivered'
+GROUP BY p.product_name,p.product_id
+)
+select * from search_product
+order by gross_realized_revenue DESC
+limit 10;
 
+
+--Top 10 products in Pipeline
+SET search_path TO ecom;
+with search_product as (
+select p.product_id,p.product_name, 
+sum(oi.line_total) as pipeline_revenue,
+SUM(oi.qty) AS units_sold,
+COUNT(DISTINCT o.order_id) AS orders,
+ROUND(SUM(oi.line_total) / NULLIF(SUM(oi.qty), 0),2) AS avg_revenue_per_unit
+from orders o join order_items oi on oi.order_id=o.order_id
+join product_variants pv on pv.variant_id=oi.variant_id
+join Products p on p.product_id=pv.product_id
+WHERE LOWER(TRIM(o.status)) not in ('delivered','cancelled')
+GROUP BY p.product_name,p.product_id
+)
+select * from search_product
+order by pipeline_revenue DESC
+limit 10;
+
+--Country Wise Revenue
+SET search_path TO ecom;
+
+WITH cust_demo AS (
+SELECT 
+     case 
+    when lower(trim(c.country)) in ('','n/a','na') 
+    or c.country is null
+        then 'Not Available'
+        else trim(c.country)
+        end as country,
+    SUM(oi.line_total) AS gross_revenue
+    FROM customers c JOIN orders o
+        ON o.customer_id = c.customer_id
+    JOIN order_items oi
+        ON oi.order_id = o.order_id
+    WHERE LOWER(TRIM(o.status)) = 'delivered'
+    GROUP BY 1
+),
+refund_calculation AS (
+    SELECT
+       case 
+        when lower(trim(c.country)) in ('','n/a','na') 
+        or c.country is null
+        then 'Not Available'
+        else trim(c.country)
+        end as country,
+        SUM(r.amount) AS refund_amount
+        FROM customers c JOIN orders o
+        ON o.customer_id = c.customer_id
+        JOIN refunds r
+        ON r.order_id = o.order_id
+        WHERE LOWER(TRIM(o.status)) = 'delivered'
+        AND LOWER(TRIM(r.status)) <> 'failed'
+
+    GROUP BY 1
+)
+
+SELECT 
+   d.country,
+    ROUND(d.gross_revenue, 2) AS gross_revenue,
+    ROUND(COALESCE(r.refund_amount, 0), 2) AS total_refunds,
+    ROUND(d.gross_revenue - COALESCE(r.refund_amount, 0),2) AS net_realized_revenue,
+    ROUND(COALESCE(r.refund_amount, 0) * 100/ NULLIF(d.gross_revenue, 0),2) AS revenue_refund_rate
+
+FROM cust_demo d
+LEFT JOIN refund_calculation r
+    ON d.country = r.country
+ORDER BY net_realized_revenue DESC;
 
 
 
