@@ -31,7 +31,7 @@ COUNT(DISTINCT o.order_id)
 from orders o join customers c
 on o.customer_id=c.customer_id
 group by c.customer_id
-order by 3 desc
+order by 3 desc;
 
 -- Customer Purchase Frequency
 -- Calculate one-time purchasers and repeat-purchase behavior
@@ -122,4 +122,4 @@ round(refund_amount,2) as total_refunds,
 round(net_realized_revenue,2) as net_realized_revenue,
 ROUND(refund_amount * 100 / NULLIF(gross_realized_revenue, 0),2) AS refund_rate_pct
 from cust_ranking
-WHERE cust_rank<=10
+WHERE cust_rank<=10;

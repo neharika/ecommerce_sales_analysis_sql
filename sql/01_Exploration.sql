@@ -10,13 +10,19 @@ select distinct status from orders;
 --Total Revenue so far
 SET search_path TO ecom;
 with revenue_grouping as(
-select lower(trim(status)) as status1
-
-     from orders
-)
-select delivered_revenue,pipeline_revenue from 
-revenue_grouping
+select lower(trim(status)) as status1,
+sum(total) as revenue
+from orders
 group by lower(trim(status))
+)
+select 
+sum(case when status1 ='delivered' 
+then revenue else 0 END) as delivered_revenue,
+sum(case when status1 in ('placed','packed','paid','shipped') 
+then revenue else 0 end) as pipeline_revenue 
+from 
+revenue_grouping;
+
 
 
 --Order State Distribution
@@ -72,7 +78,7 @@ case when lower(trim(o1.status))=ord.history_status
     from orders o1 join ordering ord on
     o1.order_id=ord.order_id
     where lower(trim(o1.status)) is distinct from ord.history_status
-    order by o1.order_id
+    order by o1.order_id;
 
 --Status Discrepancy Timestamp check
 --Check whether the latest history timestamp
